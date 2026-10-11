@@ -26,7 +26,7 @@
  * The status bar (footer) shows:  decode 31.2 t/s  ttft 1.23s  n=12
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 
 interface Stats {
@@ -52,10 +52,14 @@ function sec(ms: number): string {
 	return (ms / 1000).toFixed(2) + "s";
 }
 
-// The built-in footer renders extension status text without the dim styling the rest of
-// the footer uses, so embed ANSI faint (SGR 2) codes to match the dim gray footer text.
-function dim(text: string): string {
-	return `\u001b[2m${text}\u001b[22m`;
+// The footer renders its built-in lines (cwd, token stats) with the theme's "dim" token,
+// while extension status text is rendered verbatim. Style with the same token via
+// ctx.ui.theme (the live Theme instance pi exposes to extensions) so this line matches
+// the rest of the footer exactly under any theme. The styled string is only refreshed on
+// updates, so after a mid-session theme switch the line keeps the previous theme's color
+// until the next update.
+function dim(text: string, theme: Theme): string {
+	return theme.fg("dim", text);
 }
 
 export default function (pi: ExtensionAPI) {
@@ -76,6 +80,7 @@ export default function (pi: ExtensionAPI) {
 						`decode ${tps(stats.outputTokens, stats.decodeMs)} t/s ttft ${
 							stats.ttftSamples > 0 ? sec(stats.ttftMs / stats.ttftSamples) : "–"
 						} n=${stats.requests}`,
+						ctx.ui.theme,
 				  )
 				: undefined,
 		);
