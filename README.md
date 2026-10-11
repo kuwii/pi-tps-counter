@@ -13,6 +13,15 @@ No build step required — just load the file as an extension:
 pi --extension ./tps.ts
 ```
 
+Or install it globally by copying or symlinking `tps.ts` into pi's extensions directory (create it first if it doesn't exist yet) — it will be loaded automatically in every session:
+
+```bash
+mkdir -p ~/.pi/agent/extensions
+cp tps.ts ~/.pi/agent/extensions/
+# or, to pick up future changes without re-copying:
+ln -s "$PWD/tps.ts" ~/.pi/agent/extensions/
+```
+
 The status bar (footer) will show a live summary, e.g.:
 
 ```
